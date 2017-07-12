@@ -28,13 +28,23 @@ function pfds($url){
     curl_setopt($ch, CURLOPT_WRITEFUNCTION, function($ch ,$str) use (&$flag){
         $len = strlen($str);
 
-        if($len == 0 && $flag == 0){ //header与body之间有两个回车换行，所以有一行是空字符串
+        if(strpos($str, 'HTTP/1.1 200') !== false){
+            //echo "len:{$len},flag:{$flag}<br>";
             $flag = 1;
+            return $len;
         }
 
-        if($flag == 0){
+        if($len == 2 && $flag == 1){ //header与body之间有两个回车换行，所以有一行是回车，只有2个字符
+            //echo "len:{$len},flag:{$flag}<br>";
+            $flag = 2;
+            return $len;
+        }
+        //echo "len:{$len},flag:{$flag}<br>";
+
+        if($flag == 1){
+            //echo "header:{$str}<br>";
             header($str);
-        }else{
+        }elseif($flag == 2){
             echo $str;
         }
         return $len;
