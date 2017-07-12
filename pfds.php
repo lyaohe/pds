@@ -7,7 +7,7 @@
  */
 
 /**
- * pfd - PHP File Download Server PHP文件下载服务
+ * pfds - PHP File Download Server PHP文件下载服务
  * @param $url
  */
 function pfds($url){
@@ -28,7 +28,7 @@ function pfds($url){
     curl_setopt($ch, CURLOPT_WRITEFUNCTION, function($ch ,$str) use (&$flag){
         $len = strlen($str);
 
-        if($len == 0){ //header与body之间有两个回车换行，所以有一行是空字符串
+        if($len == 0 && $flag == 0){ //header与body之间有两个回车换行，所以有一行是空字符串
             $flag = 1;
         }
 
