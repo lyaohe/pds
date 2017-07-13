@@ -1,7 +1,7 @@
 # PDS (Proxy Download Server)
 PDS -- Proxy Download Server(代理下载服务器)
 - 基于PHP Curl实现代理下载服务器，也可以当作 代理请求服务器、中转服务器
-- 分片输出，降低PHP内存压力，可做 PHP大文件下载
+- 分片输出，避免大文件崩溃，节约内存，可以做PHP大文件下载
 - CURLOPT_WRITEFUNCTION 参数的 example 代码
 
 Request:
