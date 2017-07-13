@@ -9,8 +9,9 @@
 /**
  * pfds - PHP File Download Server PHP文件下载服务
  * @param $url
+ * @param $debug
  */
-function pfds($url){
+function pfds($url, $debug = false){
     $ch = curl_init($url);
 
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);//将curl_exec()获取的信息以文件流的形式返回，而不是直接输出
@@ -24,21 +25,26 @@ function pfds($url){
 
     $flag=0;
     //回调函数名。该函数应接受两个参数。第一个是 cURL resource；第二个是要写入的数据字符串
-    curl_setopt($ch, CURLOPT_WRITEFUNCTION, function($ch ,$str) use (&$flag){
+    curl_setopt($ch, CURLOPT_WRITEFUNCTION, function($ch ,$str) use (&$flag, &$debug){
         //$str 可以简单理解成每次回调，取一行数据
         $len = strlen($str);
+
+        //echo "len:{$len};str:{$str}";
 
         switch ($flag)
         {
             case 0:
+
                 if(strpos($str, 'HTTP/1.1 200') !== false || strpos($str, 'HTTP/1.1 404') !== false || strpos($str, 'HTTP/1.1 500') !== false){
                     //当标志位flag == 0, 且找到 (HTTP/1.1 200 || HTTP/1.1 404 || HTTP/1.1 500)，标志位flag改为1
+                    ppsHeader($str, $debug);
                     $flag = 1;
                 }
+
                 break;
             case 1:
                 if($len > 2){  //当标志位flag == 1, 且 len > 2,是 header 字符串
-                    header($str);
+                    ppsHeader($str, $debug);
                 }else{
                     // header与body之间有两个回车换行，所以有一行是"\r\n"，2个字符
                     // 表示 “\r\n” 必须要用双引号
@@ -48,7 +54,7 @@ function pfds($url){
                 }
                 break;
             case 2:
-                echo $str; // 输出内容 body
+                ppsBody($str, $len, $debug);
                 break;
         }
 
@@ -59,11 +65,28 @@ function pfds($url){
     curl_close($ch);
 }
 
+function ppsHeader($headerStr, $debug = false){
+    if($debug){
+        echo "header: {$headerStr}<br>";
+    }else{
+        header($headerStr);
+    }
+}
+
+function ppsBody($bodyStr, $len, $debug = false){
+    if($debug){
+        echo "body: {$len}<br>";
+    }else{
+        echo $bodyStr; // 输出内容 body
+    }
+}
+
 if(empty($_GET['url'])){
     echo "Request: pfds.php?url=http://example.com <br>";
     echo "请求链接: pdfs.php?url=http://example.com <br>";
     exit();
 }
+$debug = empty($_GET['debug']) ? false : true;
 $url = $_GET['url'];
 
-pfds($url);
+pfds($url, $debug);
