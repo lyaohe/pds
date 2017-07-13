@@ -24,29 +24,34 @@ function pfds($url){
 
     $flag=0;
     //回调函数名。该函数应接受两个参数。第一个是 cURL resource；第二个是要写入的数据字符串
-    //$str 是取一行数据
     curl_setopt($ch, CURLOPT_WRITEFUNCTION, function($ch ,$str) use (&$flag){
+        //$str 可以简单理解成每次回调，取一行数据
         $len = strlen($str);
 
-        if(strpos($str, 'HTTP/1.1 200') !== false){
-            //echo "len:{$len},flag:{$flag}<br>";
-            $flag = 1;
-            return $len;
+        switch ($flag)
+        {
+            case 0:
+                if(strpos($str, 'HTTP/1.1 200') !== false || strpos($str, 'HTTP/1.1 404') !== false || strpos($str, 'HTTP/1.1 500') !== false){
+                    //当标志位flag == 0, 且找到 (HTTP/1.1 200 || HTTP/1.1 404 || HTTP/1.1 500)，标志位flag改为1
+                    $flag = 1;
+                }
+                break;
+            case 1:
+                if($len > 2){  //当标志位flag == 1, 且 len > 2,是 header 字符串
+                    header($str);
+                }else{
+                    // header与body之间有两个回车换行，所以有一行是"\r\n"，2个字符
+                    // 表示 “\r\n” 必须要用双引号
+                    if($str === "\r\n"){
+                        $flag = 2; //标志位flag改为2，后面是正文内容
+                    }
+                }
+                break;
+            case 2:
+                echo $str; // 输出内容 body
+                break;
         }
 
-        if($len == 2 && $flag == 1){ //header与body之间有两个回车换行，所以有一行是回车，只有2个字符
-            //echo "len:{$len},flag:{$flag}<br>";
-            $flag = 2;
-            return $len;
-        }
-        //echo "len:{$len},flag:{$flag}<br>";
-
-        if($flag == 1){
-            //echo "header:{$str}<br>";
-            header($str);
-        }elseif($flag == 2){
-            echo $str;
-        }
         return $len;
     });
 
