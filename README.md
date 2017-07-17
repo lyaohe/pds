@@ -16,15 +16,18 @@ Debug:
 
 ##### 1. 代理(透传)下载服务器
 
+![image](https://raw.githubusercontent.com/lyaohe/pds/master/images/proxy-download-file.png)
+
 有时候会遇到下载一个文件会特别慢，甚至只有几kb/s，不是存放文件的服务器带宽不足，也不是我网络太慢，而是中间走的网络太差，这时候可以自己部署一台代理(中转)服务器来下载，往往下载速度可以翻10倍以上，简直是天堂与地狱的区别，祝你好运。
 
- ![image](https://raw.githubusercontent.com/lyaohe/pds/master/images/proxy-download-file.png)
-
 ##### 2. 简单的云存储架构: 业务服务器 + 存放文件的服务器
+
+ ![image](https://raw.githubusercontent.com/lyaohe/pds/master/images/file-download-server.png)
+
 - 业务服务器：处理客户端(浏览器)的请求，先做业务逻辑处理，例如：安全检查、请求频率检查、日志记录，然后再通过PDS请求文件服务器，返回给客户端
 - 存放文件的服务器，可以是多台内网服务器，不用外网IP节省带宽，通过内网，提供Http请求获取文件即可
 
- ![image](https://raw.githubusercontent.com/lyaohe/pds/master/images/file-download-server.png)
+
 
 目前只想到2种场景，你们还想什么场景可以用到，欢迎跟我交流，我来补充分享给大家
 
