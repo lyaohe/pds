@@ -14,10 +14,31 @@ class Pds
 {
     static public $debug = false;
 
+    static private $filterHeader = [
+        'Transfer-Encoding',
+    ];
+
     static public function request($url, $debug = false){
         self::$debug = $debug;
 
         $ch = curl_init($url);
+
+        if (strtolower($_SERVER['REQUEST_METHOD']) == 'post' ) {
+            curl_setopt( $ch, CURLOPT_POST, true );
+
+            if(count($_POST) > 0){
+                curl_setopt( $ch, CURLOPT_POSTFIELDS,  $_POST);
+            }else{
+                $input = file_get_contents('php://input');
+                curl_setopt( $ch, CURLOPT_POSTFIELDS,  $input);
+                if(isset($_SERVER['CONTENT_TYPE'])) {
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                            'Content-Type: application/json; charset=utf-8',
+                            'Content-Length: ' . strlen($input))
+                    );
+                }
+            }
+        }
 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);//将curl_exec()获取的信息以文件流的形式返回，而不是直接输出
         curl_setopt($ch, CURLOPT_BINARYTRANSFER, true);//在启用CURLOPT_RETURNTRANSFER的时候，返回原生的（Raw）输出
@@ -73,11 +94,17 @@ class Pds
     }
 
     private static function pdsHeader($headerStr){
-        if(self::$debug){
+        foreach(self::$filterHeader as $filterStr){
+            if(strpos($headerStr, $filterStr) !== false){
+                return;
+            }
+        }
+        if (self::$debug) {
             echo "header: {$headerStr}<br>";
-        }else{
+        } else {
             header($headerStr);
         }
+
     }
 
     private static function pdsBody($bodyStr, $len){
