@@ -41,4 +41,4 @@ Email:  lyaohe@gmail.com
 1. 支持post请求、支持cookie透传，还在想哪些场景需要
 2. 支持github clone代理
 
-更新时间: 2017.07.14
+更新时间: 2017.07.15
