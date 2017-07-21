@@ -15,29 +15,36 @@ class Pds
     static public $debug = false;
 
     static private $filterHeader = [
-        'Transfer-Encoding',
+        "Transfer-Encoding: chunked\r\n",
     ];
 
-    static public function request($url, $debug = false){
+    static public function request($url, $debug = false, $host = ''){
         self::$debug = $debug;
+        $httpHeaderArr = [];
+
+        if(!empty($host)){
+            $httpHeaderArr[] = 'Host: ' . $host;
+        }
 
         $ch = curl_init($url);
 
         if (strtolower($_SERVER['REQUEST_METHOD']) == 'post' ) {
             curl_setopt( $ch, CURLOPT_POST, true );
 
+
+            if(isset($_SERVER['CONTENT_TYPE'])) {
+                $httpHeaderArr[] = 'Content-Type: ' . $_SERVER['CONTENT_TYPE'];
+            }
             if(count($_POST) > 0){
                 curl_setopt( $ch, CURLOPT_POSTFIELDS,  $_POST);
             }else{
                 $input = file_get_contents('php://input');
                 curl_setopt( $ch, CURLOPT_POSTFIELDS,  $input);
-                if(isset($_SERVER['CONTENT_TYPE'])) {
-                    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-                            'Content-Type: application/json; charset=utf-8',
-                            'Content-Length: ' . strlen($input))
-                    );
-                }
+                $httpHeaderArr[] = 'Content-Length: ' . strlen($input);
             }
+        }
+        if(count($httpHeaderArr) > 0){
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $httpHeaderArr);
         }
 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);//将curl_exec()获取的信息以文件流的形式返回，而不是直接输出
@@ -85,26 +92,25 @@ class Pds
                     self::pdsBody($str, $len);
                     break;
             }
-
             return $len;
         });
 
         curl_exec($ch);
+        //$status = curl_getinfo($ch);
+        //var_dump($status);
+
         curl_close($ch);
     }
 
     private static function pdsHeader($headerStr){
-        foreach(self::$filterHeader as $filterStr){
-            if(strpos($headerStr, $filterStr) !== false){
-                return;
-            }
+        if(in_array($headerStr, self::$filterHeader)){
+            return;
         }
         if (self::$debug) {
             echo "header: {$headerStr}<br>";
         } else {
             header($headerStr);
         }
-
     }
 
     private static function pdsBody($bodyStr, $len){
@@ -116,14 +122,32 @@ class Pds
     }
 }
 
-
-
-if(empty($_GET['url'])){
-    echo "Request: pds.php?url=http://example.com <br>";
-    echo "请求链接: pds.php?url=http://example.com <br>";
-    exit();
+// 获取URL参数，支持两种方式传参
+$url = '';
+if(isset($_GET['url'])){
+    $url = $_GET['url'];
+}else{
+    //var_dump($_SERVER);
+    $request_url = $_SERVER['REQUEST_URI'];
+    if(strpos($request_url, '/u/') !== false){
+        list( $u, $url ) = preg_split( '/u\//', $request_url, 2 );
+    }else{
+        echo "Request: pds.php?url=http://example.com <br>";
+        echo "请求链接: pds.php?url=http://example.com <br>";
+        exit();
+    }
 }
-$debug = empty($_GET['debug']) ? false : true;
-$url = $_GET['url'];
+// 提取Host参数，不需要可以去掉
+$host = '';
+if(strpos($url, '://') !== false){
+    preg_match("/:\/\/(.*?)\//", $url, $arr);
+    if(!empty($arr[1])){
+        $host = $arr[1];
+    }
+}
 
-Pds::request($url, $debug);
+// 调试参数，仅支持第一种传参方式
+$debug = empty($_GET['debug']) ? false : true;
+//$debug = true;
+
+Pds::request($url, $debug, $host);

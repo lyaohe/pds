@@ -1,16 +1,26 @@
 # PDS (Proxy Download Server)
 PDS -- Proxy Download Server(代理下载服务器)
 - 基于PHP Curl实现代理下载服务器，也可以当作 代理请求服务器、中转服务器、透传服务器
-- 分片输出，避免大文件崩溃，节约内存，可以做PHP大文件下载
-- CURLOPT_WRITEFUNCTION 参数的 example 代码
+- 支持Get、Post代理请求，支持转发 User-Agent、Content-Type请求，支持表单、字符串等请求数据
+- 基于 CURLOPT_WRITEFUNCTION 实现分片输出，避免大文件崩溃，节约内存，可以做PHP大文件下载
+- 支持两种方式传入URL参数的功能，支持调试(Debug)模式
+- 支持过滤部分header的功能，示例header数组去掉了 Transfer-Encoding: chunked
+- 支持github https代理功能，git clone、git pull 经测试可用，git push尚未支持
 
-Request:
+两种请求方式 (Two Request):
 
-> pds.php?url=http://example.com/
+> ① pds.php?url=http://example.com/
 
-Debug:
+> ② pds.php/u/http://example.com/ （针对Github 代理克隆项目新增传参方式）
+
+调试方式 Debug:
 
 > pds.php?url=http://example.com/&debug=1
+
+Github 代理克隆项目
+
+> 必须要用第二次请求方式，示例命令： git clone pds.php/u/http://example.com/
+
 
 ### 使用场景
 
@@ -28,7 +38,6 @@ Debug:
 - 存放文件的服务器，可以是多台内网服务器，不用外网IP节省带宽，通过内网，提供Http请求获取文件即可
 
 
-
 目前只想到2种场景，你们还想什么场景可以用到，欢迎跟我交流，我来补充分享给大家
 
 Email:  lyaohe@gmail.com
@@ -38,7 +47,6 @@ Email:  lyaohe@gmail.com
 
 
 ### 计划继续开发的功能
-1. 支持post请求、支持cookie透传，还在想哪些场景需要
-2. 支持github clone代理
+1. 支持cookie透传，支持http认证透传
 
-更新时间: 2017.07.14
+更新时间: 2017.07.21
