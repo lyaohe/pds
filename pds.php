@@ -28,6 +28,17 @@ class Pds
 
         $ch = curl_init($url);
 
+        // Authorization
+        if(isset($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['PHP_AUTH_PW'])){
+            curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+            curl_setopt($ch, CURLOPT_USERPWD, "{$_SERVER['PHP_AUTH_USER']}:{$_SERVER['PHP_AUTH_PW']}");
+        }
+
+        // set cookie
+        if(isset($_SERVER['HTTP_SET_COOKIE'])){
+            curl_setopt ($ch, CURLOPT_COOKIE , $_SERVER['HTTP_SET_COOKIE']);
+        }
+
         if (strtolower($_SERVER['REQUEST_METHOD']) == 'post' ) {
             curl_setopt( $ch, CURLOPT_POST, true );
 
